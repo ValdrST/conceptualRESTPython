@@ -1,50 +1,61 @@
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 from json import dumps
 
-db_connect = create_engine('mysql+mysqldb://root:nomad123@localhost:3306/prueba1?charset=utf8')
+db_connect = create_engine('mysql+mysqldb://valdr:nomad123@localhost:3306/prueba1?charset=utf8')
+Session = sessionmaker(bind= db_connect)
+session = Session()
+Base = declarative_base()
 app = Flask(__name__)
 api = Api(app)
 
+class Usuarios(Base):
+    __tablename__='usuarios'
+    id = Column(Integer, primary_key=True)
+    usuario = Column(String)
+    nombre = Column(String)
+    apellido = Column(String)
+    fecha_nacimiento = Column(String)
+    status = Column(String)
+    
+    def __repr__(self):
+        return "Usuarios(id='{self.id}',nombre='{self.nombre}',apellido='{self.apellido}',fecha_nacimiento='{self.fecha_nacimiento}',status='{self.status}')".format(self=self)
+
+    def _get_usuarios(self):
+        p = self.select()
+        return p
 
 @app.route('/user', methods=['GET'])
-def getUser(self):
-    conn = db_connect.connect() # connect to database
-    query = conn.execute("select * from employees") # This line performs query and returns json result
-    return {'employees': [i[0] for i in query.cursor.fetchall()]} # Fetches first column that is Employee ID
+def getUser():
+    query = session.query(Usuarios).all()
+    print(query)
+    result = []
+    for user in query:
+        result.append({'usuario':user.usuario, 'nombre':user.nombre, 'apellido':user.apellido, 'fecha_nacimiento': user.fecha_nacimiento, 'status': user.status})
+    return jsonify({'data':result})
     
 @app.route('/user', methods=['POST'])
-def postUser(self):
-    conn = db_connect.connect()
+def postUser():
     print(request.json)
-    LastName = request.json['LastName']
-    FirstName = request.json['FirstName']
-    Title = request.json['Title']
-    ReportsTo = request.json['ReportsTo']
-    BirthDate = request.json['BirthDate']
-    HireDate = request.json['HireDate']
-    Address = request.json['Address']
-    City = request.json['City']
-    State = request.json['State']
-    Country = request.json['Country']
-    PostalCode = request.json['PostalCode']
-    Phone = request.json['Phone']
-    Fax = request.json['Fax']
-    Email = request.json['Email']
-    query = conn.execute("insert into employees values(null,'{0}','{1}','{2}','{3}', \
-                            '{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}', \
-                            '{13}')".format(LastName,FirstName,Title,
-                            ReportsTo, BirthDate, HireDate, Address,
-                            City, State, Country, PostalCode, Phone, Fax,
-                            Email))
-    return {'status':'success'}
+    usuario = request.json['usuario']
+    nombre = request.json['nombre']
+    apellido = request.json['apellido']
+    fecha_nacimiento = request.json['fecha_nacimiento']
+    status = request.json['status']
+    p = Usuarios(usuario = usuario, nombre = nombre, apellido = apellido, fecha_nacimiento = fecha_nacimiento, status = status)
+    session.add(p)
+    session.commit()
+    return jsonify({'status':'success'})
     
 @app.route('/user/<id>', methods=['GET'])
 def getUserId(id):
-    conn = db_connect.connect()
-    query = conn.execute("select * from employees where id =%d "  %int(id))
-    result = {'data': [dict(zip(tuple (query.keys()) ,i)) for i in query.cursor]}
+    query = session.query(Usuarios).filter(Usuarios.id==id).first()
+    print(query)
+    result = {'data':{'usuario':query.usuario, 'nombre':query.nombre, 'apellido':query.apellido, 'fecha_nacimiento': query.fecha_nacimiento, 'status': query.status}}
+    print(result)
     return jsonify(result)
 
 if __name__ == '__main__':
