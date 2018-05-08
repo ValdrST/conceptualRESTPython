@@ -40,11 +40,29 @@ def postUser():
     
 @app.route('/user/<id>', methods=['GET'])
 def getUserId(id):
-    query = Usuarios.selectBy(id=id)
-    print(query)
-    result = {'data':{'usuario':query[0].usuario, 'nombre':query[0].nombre, 'apellido':query[0].apellido, 'fecha_nacimiento': query[0].fecha_nacimiento, 'status': query[0].status}}
-    print(result)
-    return jsonify(result)
+    users = Usuarios.selectBy(id=id)
+    for user in users:
+        print("USUARIO"+str(user))
+        result = {'data':{'usuario':user.usuario, 'nombre':user.nombre, 'apellido':user.apellido, 'fecha_nacimiento': user.fecha_nacimiento, 'status': user.status}}
+        print(result)
+        return jsonify(result)
+    return jsonify({'status':'failed'})
+
+@app.route("/user/<id>", methods=['DELETE'])
+def deleteUserId(id):
+    user = Usuarios.selectBy(id=id)[0]
+    Usuarios.delete(user.id)
+    return jsonify({'status':'success'})
+
+@app.route("/user/<id>", methods=['PUT'])
+def modificarUserId(id):
+    user = Usuarios.selectBy(id=id)
+    user[0].usuario = request.json['usuario']
+    user[0].nombre = request.json['nombre']
+    user[0].apellido = request.json['apellido']
+    user[0].fecha_nacimiento = request.json['fecha_nacimiento']
+    user[0].status = request.json['status']
+    return jsonify({'status':'success'})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

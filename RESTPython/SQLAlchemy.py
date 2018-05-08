@@ -58,5 +58,27 @@ def getUserId(id):
     print(result)
     return jsonify(result)
 
+@app.route("/user/<id>", methods=['DELETE'])
+def deleteUserId(id):
+    query = session.query(Usuarios)
+    query = query.filter(Usuarios.id == id)
+    user = query.one()
+    session.delete(user)
+    session.commit()
+    return jsonify({'status':'success'})
+
+@app.route("/user/<id>", methods=['PUT'])
+def modificarUserId(id):
+    query = session.query(Usuarios)
+    user = query.filter(Usuarios.id == id).first()
+    user.usuario = request.json['usuario']
+    user.nombre = request.json['nombre']
+    user.apellido = request.json['apellido']
+    user.fecha_nacimiento = request.json['fecha_nacimiento']
+    user.status = request.json['status']
+    session.commit()
+    return jsonify({'status':'success'})
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
