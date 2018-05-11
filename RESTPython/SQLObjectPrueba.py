@@ -4,23 +4,26 @@ from sqlobject import *
 from json import dumps
 from sqlobject.sqlbuilder import *
 
-sqlhub.processConnection = connectionForURI('mysql://valdr:nomad123@localhost:3306/prueba2?charset=utf8')
+sqlhub.processConnection = connectionForURI('mysql://valdr:nomad123@localhost:3306/pruebasy?charset=utf8')
 app = Flask(__name__)
 api = Api(app)
 
-class DIR_ALUMNOS_DGAE(SQLObject):
-    CUENTA = StringCol()
-    CARRERA = StringCol()
-    PLAN_DGAE = StringCol()
-    REGISTRO = StringCol()
-    CRED_SEM_CARR_PLN = MultipleJoin('CRED_SEM_CARR_PLN', joinColumn='CUENTA')
-    ESTUDIA_SERIACION = MultipleJoin('ESTUDIA_SERIACION', joinColumn='CUENTA')
-    BAJAS_TEMPORALES = MultipleJoin('BAJAS_TEMPORALES', joinColumn='CUENTA')
+class dir_alumnos_dgae(SQLObject):
+    cuenta = StringCol()
+    carrera = StringCol()
+    plan_dgae = StringCol()
+    Registro = StringCol()
+    cred_sem_carr_pln = MultipleJoin('cred_sem_carr_pln', joinColumn='cuenta')
+    estudia_seriacion = MultipleJoin('estudia_seriacion', joinColumn='cuenta')
+    bajas_temporales = MultipleJoin('bajas_temporales', joinColumn='cuenta')
+    def _dir_alumnos_dgae(self):
+        d = self.select()
+        return d
 
 
-class CRED_SEM_CARR_PLN(SQLObject):
-    CUENTA = ForeignKey('DIR_ALUMNOS_DGAE')
-    CARRERA = StringCol()
+class cred_sem_carr_pln(SQLObject):
+    cuenta = ForeignKey('dir_alumnos_dgae')
+    carrera = StringCol()
     PLN = StringCol()
     ASEM01 = StringCol()
     ASEM02 = StringCol()
@@ -34,32 +37,35 @@ class CRED_SEM_CARR_PLN(SQLObject):
     ASEM10 = StringCol()
 
 class ESTUDIA_SERIACION(SQLObject):
-    CARRERA = StringCol()
-    PLN_DGAE = StringCol()
+    carrera = StringCol()
+    pln_dgae = StringCol()
     PLN = StringCol()
     REGISTRO = StringCol()
     AVANCE = StringCol()
     PROMEDIO = StringCol()
     CREDITOS_CUBIERTOS = StringCol()
     ULTIMO_CURSADO = StringCol()
-    CUENTA = ForeignKey('DIR_ALUMNOS_DGAE')
+    cuenta = ForeignKey('dir_alumnos_dgae')
 
-class PERIODO(SQLObject):
-    ANIO = StringCol()
-    SEMESTRE = StringCol()
+class periodo(SQLObject):
+    anio = StringCol()
+    semestre = StringCol()
 
-class BAJAS_TEMPORALES(SQLObject):
-    CUENTA = ForeignKey('DIR_ALUMNOS_DGAE')
+class bajas_temporales(SQLObject):
+    cuenta = ForeignKey('dir_alumnos_dgae')
 
 
 @app.route('/ranking/<id>', methods=['GET'])
 def getRanking(id):
-    periodo = PERIODO.select()
-    for semestre_actual in periodo:
-        semestre_actual = semestre_actual.ANIO + semestre_actual.SEMESTRE
+    p = periodo.select()
+    for semestre_actual in p:
+        semestre_actual = semestre_actual.anio + semestre_actual.semestre
     
-    DIR_ALUMNOS_DGAE.select(DIR_ALUMNOS_DGAE.CUENTA == id,join=LEFTJOINOn(ESTUDIA_SERIACION, DIR_ALUMNOS_DGAE, len(DIR_ALUMNOS_DGAE.CUENTA)==9), join=LEFTJOINOn(BAJAS_TEMPORALES,CRED_SEM_CARR_PLN,ESTUDIA_SERIACION.PLN == CRED_SEM_CARR_PLN.PLN),DIR_ALUMNOS_DGAE.PLAN_DGAE==ESTUDIA_SERIACION.PLN_DGAE,ESTUDIA_SERIACION.CARRERA==CRED_SEM_CARR_PLN.CARRERA)    
-    alumn = DIR_ALUMNOS_DGAE.selectBy(CUENTA='314144799')
+    #dir_alumnos_dgae.select(dir_alumnos_dgae.cuenta == id,join=LEFTJOINOn(ESTUDIA_SERIACION, dir_alumnos_dgae, len(dir_alumnos_dgae.cuenta)==9), join=LEFTJOINOn(bajas_temporales,CRED_SEM_CARR_PLN,ESTUDIA_SERIACION.PLN == CRED_SEM_CARR_PLN.PLN),dir_alumnos_dgae.PLAN_DGAE==ESTUDIA_SERIACION.pln_dgae,ESTUDIA_SERIACION.carrera==CRED_SEM_CARR_PLN.carrera)    
+    
+    almn = dir_alumnos_dgae.selectBy(cuenta ='314144799')
+    alumno = almn[0].cuenta
+    
     
 
 @app.route('/user', methods=['GET'])
