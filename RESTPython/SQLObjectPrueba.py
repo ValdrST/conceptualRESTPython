@@ -65,6 +65,7 @@ def getRanking(id):
     
     almn = dir_alumnos_dgae.selectBy(cuenta ='314144799')
     alumno = almn[0].cuenta
+    return alumno
     
     
 
