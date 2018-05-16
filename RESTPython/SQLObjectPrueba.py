@@ -12,7 +12,7 @@ class dir_alumnos_dgae(SQLObject):
     cuenta = StringCol()
     carrera = StringCol()
     plan_dgae = StringCol()
-    Registro = StringCol()
+    registro = StringCol()
     cred_sem_carr_pln = MultipleJoin('cred_sem_carr_pln', joinColumn='cuenta')
     estudia_seriacion = MultipleJoin('estudia_seriacion', joinColumn='cuenta')
     bajas_temporales = MultipleJoin('bajas_temporales', joinColumn='cuenta')
@@ -36,15 +36,15 @@ class cred_sem_carr_pln(SQLObject):
     ASEM09 = StringCol()
     ASEM10 = StringCol()
 
-class ESTUDIA_SERIACION(SQLObject):
+class estudia_seriacion(SQLObject):
     carrera = StringCol()
     pln_dgae = StringCol()
-    PLN = StringCol()
-    REGISTRO = StringCol()
-    AVANCE = StringCol()
-    PROMEDIO = StringCol()
-    CREDITOS_CUBIERTOS = StringCol()
-    ULTIMO_CURSADO = StringCol()
+    pln = StringCol()
+    registro = StringCol()
+    avance = StringCol()
+    promedio = StringCol()
+    creditos_cubiertos = StringCol()
+    ultimo_cursado = StringCol()
     cuenta = ForeignKey('dir_alumnos_dgae')
 
 class periodo(SQLObject):
@@ -60,12 +60,36 @@ def getRanking(id):
     p = periodo.select()
     for semestre_actual in p:
         semestre_actual = semestre_actual.anio + semestre_actual.semestre
-    
-    #dir_alumnos_dgae.select(dir_alumnos_dgae.cuenta == id,join=LEFTJOINOn(ESTUDIA_SERIACION, dir_alumnos_dgae, len(dir_alumnos_dgae.cuenta)==9), join=LEFTJOINOn(bajas_temporales,CRED_SEM_CARR_PLN,ESTUDIA_SERIACION.PLN == CRED_SEM_CARR_PLN.PLN),dir_alumnos_dgae.PLAN_DGAE==ESTUDIA_SERIACION.pln_dgae,ESTUDIA_SERIACION.carrera==CRED_SEM_CARR_PLN.carrera)    
-    
-    almn = dir_alumnos_dgae.selectBy(cuenta ='314144799')
-    alumno = almn[0].cuenta
-    return alumno
+    DAD = AliasTable(dir_alumnos_dgae,"DAD")
+    P = AliasTable(periodo, "P")
+    BT = AliasTable(bajas_temporales, "BT")
+    CCP = AliasTable(cred_sem_carr_pln, "CCP")
+    ES = AliasTable(estudia_seriacion,"ES")
+    clave_carrera_dgae = AliasField(dir_alumnos_dgae, "carrera", "clave_carrera_dgae",DAD)
+    clave_carrera_facultad = AliasField(estudia_seriacion, "carrera", "clave_carrera_facultad",ES)
+    plan_dgae = AliasField(dir_alumnos_dgae, "plan_dgae","plan_dgae",DAD)
+    plan_facultad = AliasField(estudia_seriacion,"pln","plan_facultad",ES)
+    ultimoSemestre = AliasField(dir_alumnos_dgae,"registro","ultimo_semestre",DAD)
+    #dir_alumnos_dgae.select(dir_alumnos_dgae.cuenta == id,join=LEFTJOINOn(ESTUDIA_SERIACION, dir_alumnos_dgae, len(dir_alumnos_dgae.cuenta)==9), join=LEFTJOINOn(bajas_temporales,CRED_SEM_CARR_PLN,ESTUDIA_SERIACION.PLN == CRED_SEM_CARR_PLN.PLN),dir_alumnos_dgae.PLAN_DGAE==ESTUDIA_SERIACION.pln_dgae,ESTUDIA_SERIACION.carrera==CRED_SEM_CARR_PLN.carrera)
+    almn = dir_alumnos_dgae.selectBy(cuenta = '314144799')
+    es = estudia_seriacion.selectBy(cuenta = '314144799')
+    alumno = almn[0]
+    es = es[0]
+    ultimo_cursado = es.ultimo_cursado
+    registro = es.registro
+    if(ultimo_cursado==''):
+        semestre_calculo = 0
+        if(semestre_calculo == 0):
+            semestre_calculo = (semestre_calculo * 2 - registro / 10 ) - 1
+            if(semestre_calculo == -1):
+                semestre_calculo = 0
+        else:
+            semestre_calculo = (semestre_calculo * 2 - registro / 10 ) - 1
+    else:
+        semestre_calculo = (semestre_calculo * 2 - registro / 10 ) - 1
+
+    print(alumno)
+    return jsonify({'semestre_actual':semestre_actual,'clave_carrera_dgae':alumno.carrera,'clave_carrera_facultad':es.carrera,'plan_dgae':alumno.plan_dgae,'plan_facultad':es.pln,'semestre_registro':es.registro,'ultimo_semestre':alumno.registro,'semestre_calculo':semestre_calculo})
     
     
 
