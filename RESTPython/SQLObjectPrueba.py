@@ -80,13 +80,13 @@ def getRanking(id):
     if(ultimo_cursado==''):
         semestre_calculo = 0
         if(semestre_calculo == 0):
-            semestre_calculo = (semestre_calculo * 2 - registro / 10 ) - 1
+            semestre_calculo = 2 * (int(ultimo_cursado) - int(registro) / 10 ) - 1
             if(semestre_calculo == -1):
                 semestre_calculo = 0
         else:
-            semestre_calculo = (semestre_calculo * 2 - registro / 10 ) - 1
+            semestre_calculo = 2 * (int(ultimo_cursado) - int(registro) / 10 ) - 1
     else:
-        semestre_calculo = (semestre_calculo * 2 - registro / 10 ) - 1
+        semestre_calculo = 2 * (int(ultimo_cursado) - int(registro) / 10 ) - 1
 
     print(alumno)
     return jsonify({'semestre_actual':semestre_actual,'clave_carrera_dgae':alumno.carrera,'clave_carrera_facultad':es.carrera,'plan_dgae':alumno.plan_dgae,'plan_facultad':es.pln,'semestre_registro':es.registro,'ultimo_semestre':alumno.registro,'semestre_calculo':semestre_calculo})
