@@ -1,32 +1,34 @@
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api
 from json import dumps
-import MySQLdb
-
+import pyodbc
 
 app = Flask(__name__)
 api = Api(app)
 
-DB_HOST = 'localhost' 
+DB_HOST = 'http://localhost' 
 DB_USER = 'valdr' 
 DB_PASS = 'nomad123' 
 DB_NAME = 'pruebasy'
 
 def run_query(query=''):
-    datos = [DB_HOST, DB_USER, DB_PASS, DB_NAME] 
-    conn = MySQLdb.connect(*datos)
-    cursor = conn.cursor(MySQLdb.cursors.DictCursor) 
+    ConnectionString = "DSN=pruebasy;UID=valdr;PWD=nomad123"
+    conn = pyodbc.connect(ConnectionString)
+    cursor = conn.cursor() 
     cursor.execute(query)
 
-    if query.upper().startswith('SELECT'): 
-        data = cursor.fetchall()
+    if query.upper().startswith('SELECT'):
+        columns = [column[0] for column in cursor.description]
+        results = []
+        for row in cursor.fetchall():
+            results.append(dict(zip(columns, row)))
     else: 
         conn.commit()               
-        data = None 
-    data = data[0]
+        results = None 
+    results = results[0]
     cursor.close()                  
     conn.close()                   
-    return data
+    return results
 
 @app.route('/ranking/<id>', methods=['GET'])
 def getRanking(id):

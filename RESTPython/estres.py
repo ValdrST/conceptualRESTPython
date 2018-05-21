@@ -3,6 +3,7 @@ import threading
 from multiprocessing import Queue
 import time
 import sys
+from analisis import analisis
 
 def getj(n,f):
     try:
@@ -13,8 +14,9 @@ def getj(n,f):
         tiempo = fin-inicio
         f.write("exito,"+str(tiempo)+"\n")
         #print(str(n) + str(r.json()))
-    except:
-        
+    except Exception as inst:
+        print(inst)
+        print(type(inst))
         fin = time.time()
         tiempo = fin-inicio
         f.write("fallo,"+str(tiempo)+"\n")
@@ -24,14 +26,11 @@ def main():
     f.write("estado,tiempo\n")
     global exito, fallo
     exito, fallo  = 0, 0
-    for i in range (3000):
+    for i in range (int(sys.argv[2])):
         thread = threading.Thread(target=getj, args=(i,f))
         thread.start()
     thread.join()
-    #for linea in f:
-     #   if linea == "exito\n":
-      #      exito = exito + 1
-       # elif linea == "fallo\n":
-        #    fallo = fallo + 1
-    #print(str(exito)+" "+str(fallo))
+    analisis()
+
 main()
+
