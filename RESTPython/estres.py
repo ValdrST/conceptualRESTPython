@@ -9,7 +9,6 @@ def getj(n,f):
     try:
         inicio = time.time()
         r = requests.get('http://localhost:5000/ranking/314144799')
-        
         fin = time.time()
         tiempo = fin-inicio
         f.write("exito,"+str(tiempo)+"\n")
@@ -18,7 +17,7 @@ def getj(n,f):
         print(inst)
         print(type(inst))
         fin = time.time()
-        tiempo = fin-inicio
+        tiempo = fin - inicio
         f.write("fallo,"+str(tiempo)+"\n")
 
 def main():
@@ -27,7 +26,7 @@ def main():
     global exito, fallo
     exito, fallo  = 0, 0
     for i in range (int(sys.argv[2])):
-        thread = threading.Thread(target=getj, args=(i,f))
+        thread = threading.Thread(target = getj, args=(i,f))
         thread.start()
     thread.join()
     analisis()
